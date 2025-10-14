@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tend</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="calculator" role="application" aria-label="Tend">
+        <div id="display" class="display" aria-live="polite">0</div>
+
+        <div class="buttons" aria-hidden="false">
+            <button type="button" class="btn function" data-action="clear">C</button>
+            <button type="button" class="btn function" data-action="backspace">⌫</button>
+            <button type="button" class="btn operator" data-action="divide">÷</button>
+            <button type="button" class="btn operator" data-action="multiply">x</button>
+
+            <button type="button" class="btn" data-digit="7">7</button>
+            <button type="button" class="btn" data-digit="8">8</button>
+            <button type="button" class="btn" data-digit="9">9</button>
+            <button type="button" class="btn operator" data-action="subtract">-</button>
+
+            <button type="button" class="btn" data-digit="4">4</button>
+            <button type="button" class="btn" data-digit="5">5</button>
+            <button type="button" class="btn" data-digit="6">6</button>
+            <button type="button" class="btn operator" data-action="add">+</button>
+
+            <button type="button" class="btn" data-digit="1">1</button>
+            <button type="button" class="btn" data-digit="2">2</button>
+            <button type="button" class="btn" data-digit="3">3</button>
+            <button type="button" class="btn equals" data-action="equals">=</button>
+
+            <button type="button" class="btn zero" data-digit="0">0</button>
+            <button type="button" class="btn" data-action="decimal">.</button>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
