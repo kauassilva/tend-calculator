@@ -5,6 +5,7 @@ const buttonsElement = document.querySelector('.buttons');
 // tokens da expressão
 let tokens = [];
 let currentToken = '0';
+let evaluated = false; // Se torna true depois de pressionar equals; Mantem a expressao visivel
 
 const operators = {
     '+': {
@@ -51,6 +52,14 @@ function pushCurrentToken() {
 }
 
 function inputDigit(digit) {
+    // Se a expressao foi avaliada, iniciar uma nova expressao ao digitar um numero
+    if (evaluated) {
+        tokens = [];
+        currentToken = digit;
+        evaluated = false;
+        updateUI();
+        return;
+    }
     if (currentToken === '0')
         currentToken = digit;
     else
@@ -60,6 +69,13 @@ function inputDigit(digit) {
 }
 
 function inputDecimal() {
+    if (evaluated) {
+        tokens = [];
+        currentToken = '0.';
+        evaluated = false;
+        updateUI();
+        return;
+    }
     if (!currentToken.includes('.')) {
         currentToken += '.';
         updateUI();
@@ -67,9 +83,14 @@ function inputDecimal() {
 }
 
 function inputOperator(operator) {
-    // Finaliza o token de numero
-    if (!(currentToken === '0' && tokens.length === 0))
-        pushCurrentToken();
+    if (evaluated) {
+        tokens = [currentToken];
+        evaluated = false;
+    } else {
+        // Finaliza o token de numero
+        if (!(currentToken === '0' && tokens.length === 0))
+            pushCurrentToken();
+    }
 
     const last = tokens[tokens.length - 1];
 
@@ -85,10 +106,15 @@ function inputOperator(operator) {
 function clearAll() {
     tokens = [];
     currentToken = '0';
+    evaluated = false;
     updateUI();
 }
 
 function backspace() {
+    if (evaluated) {
+        tokens = [];
+        evaluated = false;
+    }
     if (currentToken.length > 1)
         currentToken = currentToken.slice(0, -1);
     else
@@ -168,12 +194,14 @@ function handleEquals() {
         const rpn = toRPN(tokens);
         const raw = evalRPN(rpn);
         const result = roundIfNeeded(raw);
-        tokens = [String(result)];
+        // Mantem a expressao visivel apos avaliar
         currentToken = String(result);
+        evaluated = true;
         updateUI();
     } catch (error) {
         currentToken = 'Erro';
         tokens = [];
+        evaluated = false;
         updateUI();
     }
 }
