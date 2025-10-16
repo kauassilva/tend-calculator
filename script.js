@@ -1,126 +1,181 @@
+const expressionElement = document.getElementById('expression');
 const displayElement = document.getElementById('display');
 const buttonsElement = document.querySelector('.buttons');
 
-let currentValue = '0';
-let previousValue = null;
-let operator = null;
-let waitingForNewValue = false;
+// tokens da expressão
+let tokens = [];
+let currentToken = '0';
 
-function updateDisplay() {
-    displayElement.textContent = String(currentValue);
+const operators = {
+    '+': {
+        precedence: 1,
+        associativity: 'left',
+        func: (a, b) => a + b
+    },
+    '-': {
+        precedence: 1,
+        associativity: 'left',
+        func: (a, b) => a - b
+    },
+    '*': {
+        precedence: 2,
+        associativity: 'left',
+        func: (a, b) => a * b,
+    },
+    '/': {
+        precedence: 2,
+        associativity: 'left',
+        func: (a, b) => {
+            if (b === 0)
+                throw new Error('Erro: Divisão por zero');
+
+            return a / b;
+        }
+    }
+}
+
+function updateUI() {
+    expressionElement.textContent = tokens.join(' ');
+    displayElement.textContent = currentToken;
+}
+
+function pushCurrentToken() {
+    if (!currentToken || currentToken === '')
+        return;
+    // nao inserir o zero padrao como um token quando a expressao estiver vazia
+    if (currentToken === '0' && tokens.length === 0)
+        return;
+
+    tokens.push(currentToken);
+    currentToken = '0';
 }
 
 function inputDigit(digit) {
-    if (waitingForNewValue) {
-        currentValue = digit;
-        waitingForNewValue = false;
-    } else {
-        currentValue = currentValue === '0' ? digit : currentValue + digit;
-    }
+    if (currentToken === '0')
+        currentToken = digit;
+    else
+        currentToken += digit;
 
-    updateDisplay();
+    updateUI();
 }
 
 function inputDecimal() {
-    if (waitingForNewValue) {
-        currentValue = '0.';
-        waitingForNewValue = false;
-        updateDisplay();
-        return;
+    if (!currentToken.includes('.')) {
+        currentToken += '.';
+        updateUI();
     }
+}
 
-    if (!currentValue.includes('.')) {
-        currentValue += '.';
-        updateDisplay();
-    }
+function inputOperator(operator) {
+    // Finaliza o token de numero
+    if (!(currentToken === '0' && tokens.length === 0))
+        pushCurrentToken();
+
+    const last = tokens[tokens.length - 1];
+
+    if (last && operators[last])
+        tokens[tokens.length - 1] = operator;
+    else
+        tokens.push(operator);
+
+    currentToken = '0';
+    updateUI();
 }
 
 function clearAll() {
-    currentValue = '0';
-    previousValue = null;
-    operator = null;
-    waitingForNewValue = false;
-    updateDisplay();
+    tokens = [];
+    currentToken = '0';
+    updateUI();
 }
 
 function backspace() {
-    if (waitingForNewValue) {
-        return;
-    }
+    if (currentToken.length > 1)
+        currentToken = currentToken.slice(0, -1);
+    else
+        currentToken = '0';
 
-    if (currentValue.length <= 1) {
-        currentValue = '0';
-    } else {
-        currentValue = currentValue.slice(0, -1);
-    }
-
-    updateDisplay();
+    updateUI();
 }
 
-function calculate(a, b, op) {
-    if (op === '+') return a + b;
-    if (op === '-') return a - b;
-    if (op === '*') return a * b;
+function toRPN(inputTokens) {
+    const out = [];
+    const stack = [];
 
-    if (op === '/') {
-        if (b === 0) return 'Erro: Divisão por zero';
-        
-        return a / b;
+    for (const token of inputTokens) {
+        if (token == null || token === '')
+            continue;
+        if (!isNaN(token)) {
+            out.push(token);
+            continue;
+        }
+        if (operators[token]) {
+            const o1 = token;
+
+            while (stack.length > 0 && operators[stack[stack.length - 1]]) {
+                const o2 = stack[stack.length - 1];
+
+                if ((operators[o1].associativity === 'left' && operators[o1].precedence <= operators[o2].precedence) || (operators[o1].associativity === 'right' && operators[o1].precedence < operators[o2].precedence)) {
+                    out.push(stack.pop());
+                    continue;
+                }
+
+                break;
+            }
+
+            stack.push(o1);
+            continue;
+        }
     }
 
-    return b;
+    while (stack.length > 0)
+        out.push(stack.pop());
+
+    return out;
 }
 
-function handleOperator(nextOperator) {
-    const inputValue = parseFloat(currentValue);
+function evalRPN(rpn) {
+    const stack = [];
 
-    if (operator && waitingForNewValue) {
-        operator = nextOperator;
-        return;
-    }
+    for (const token of rpn) {
+        if (!isNaN(token)) {
+            stack.push(parseFloat(token));
+            continue;
+        }
+        if (operators[token]) {
+            const b = stack.pop();
+            const a = stack.pop();
 
-    if (previousValue == null) {
-        previousValue = inputValue;
-    } else if (operator) {
-        const rawResult = calculate(previousValue, inputValue, operator);
+            if (a == null || b == null)
+                throw new Error('Erro: Expressão inválida');
 
-        if (typeof rawResult === 'string') {
-            currentValue = rawResult;
-            previousValue = null;
-            operator = null;
-            waitingForNewValue = true;
-            updateDisplay();
-            return;
+            stack.push(operators[token].func(a, b));
+            continue;
         }
 
-        const result = roundIfNeeded(rawResult);
-        previousValue = result;
-        currentValue = String(result);
-        updateDisplay();
+        throw new Error('Erro: Token desconhecido: ' + token);
     }
 
-    waitingForNewValue = true;
-    operator = nextOperator;
+    if (stack.length !== 1)
+        throw new Error('Erro: Expressão inválida');
+
+    return stack[0];
 }
 
 function handleEquals() {
-    if (operator == null || waitingForNewValue) {
-        return;
+    pushCurrentToken();
+
+    try {
+        const rpn = toRPN(tokens);
+        const raw = evalRPN(rpn);
+        const result = roundIfNeeded(raw);
+        tokens = [String(result)];
+        currentToken = String(result);
+        updateUI();
+    } catch (error) {
+        currentToken = 'Erro';
+        tokens = [];
+        updateUI();
     }
-
-    const inputValue = parseFloat(currentValue);
-    const rawResult = calculate(previousValue, inputValue, operator);
-
-    if (typeof rawResult === 'string') {
-        currentValue = rawResult;
-    } else {
-        currentValue = String(roundIfNeeded(rawResult));
-    }
-
-    previousValue = null;
-    operator = null;
-    waitingForNewValue = true;
-    updateDisplay();
 }
 
 function roundIfNeeded(value) {
@@ -145,75 +200,60 @@ buttonsElement.addEventListener('click', (event) => {
 
     const action = target.dataset.action;
 
-    switch (action) {
-        case 'decimal':
-            inputDecimal();
-            break;
-        case 'clear':
-            clearAll();
-            break;
-        case 'backspace':
-            backspace();
-            break;
-        case 'equals':
-            handleEquals();
-            break;
-        case 'add':
-        case 'subtract':
-        case 'multiply':
-        case 'divide':
-            {
-                const map = {
-                    add: '+',
-                    subtract: '-',
-                    multiply: '*',
-                    divide: '/'
-                };
-                handleOperator(map[action]);
-            }
-            break;
-        default:
-            break;
+    if (action === 'decimal')
+        inputDecimal();
+    else if (action === 'clear')
+        clearAll();
+    else if (action === 'backspace')
+        backspace();
+    else if (action === 'equals')
+        handleEquals();
+    else if (['add', 'subtract', 'multiply', 'divide'].includes(action)) {
+        const map = {
+            add: '+',
+            subtract: '-',
+            multiply: '*',
+            divide: '/'
+        };
+
+        inputOperator(map[action]);
     }
 });
 
 // Suporte ao teclado
 window.addEventListener('keydown', (event) => {
-    if ((event.key >= '0' && event.key <= '9')) {
-        inputDigit(event.key);
+    const key = event.key;
+
+    if ((key >= '0' && key <= '9')) {
+        inputDigit(key);
         event.preventDefault();
         return;
     }
-
-    if (event.key === ',' || event.key === '.') {
+    if (key === ',' || key === '.') {
         inputDecimal();
         event.preventDefault();
         return;
     }
-
-    if (event.key === 'Enter' || event.key === '=') {
+    if (key === 'Enter' || key === '=') {
         handleEquals();
         event.preventDefault();
         return;
     }
-
-    if (event.key === 'Backspace') {
+    if (key === 'Backspace') {
         backspace();
         event.preventDefault();
         return;
     }
-
-    if (event.key === 'Escape') {
+    if (key === 'Escape') {
         clearAll();
         event.preventDefault();
         return;
     }
-
-    if (['+', '-', '*', '/'].includes(event.key)) {
-        handleOperator(event.key);
+    if (['+', '-', '*', '/'].includes(key)) {
+        inputOperator(key);
         event.preventDefault();
         return;
     }
 });
 
-updateDisplay();
+updateUI();
