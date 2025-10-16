@@ -43,10 +43,7 @@ function updateUI() {
 function pushCurrentToken() {
     if (!currentToken || currentToken === '')
         return;
-    // nao inserir o zero padrao como um token quando a expressao estiver vazia
-    if (currentToken === '0' && tokens.length === 0)
-        return;
-
+    // Sempre empurra o token atual (inclui '0' como primeiro valor válido)
     tokens.push(currentToken);
     currentToken = '0';
 }
@@ -88,8 +85,7 @@ function inputOperator(operator) {
         evaluated = false;
     } else {
         // Finaliza o token de numero
-        if (!(currentToken === '0' && tokens.length === 0))
-            pushCurrentToken();
+        pushCurrentToken();
     }
 
     const last = tokens[tokens.length - 1];
