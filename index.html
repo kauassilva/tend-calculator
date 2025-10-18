@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tend</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <main class="calculator" role="application" aria-label="Tend">
-    <div id="expression" class="expression" aria-hidden="true"></div>
-    <div id="display" class="display" aria-live="polite">0</div>
+        <div class="brand" aria-hidden="true">Tend<span class="version">v1</span></div>
+        <div id="expression" class="expression" aria-hidden="true"></div>
+        <div id="display" class="display" aria-live="polite">0</div>
+
+        <div class="vars">
+            <label for="var-x">X</label>
+            <input type="number" id="var-x" step="any" value="0">
+        </div>
 
         <div class="buttons" aria-hidden="false">
             <button type="button" class="btn function" data-action="clear">C</button>
@@ -32,11 +40,13 @@
             <button type="button" class="btn" data-digit="3">3</button>
             <button type="button" class="btn equals" data-action="equals">=</button>
 
-            <button type="button" class="btn zero" data-digit="0">0</button>
+            <button type="button" class="btn" data-action="insert-x" id="insert-x">X</button>
+            <button type="button" class="btn" data-digit="0">0</button>
             <button type="button" class="btn" data-action="decimal">.</button>
         </div>
     </main>
 
     <script src="script.js"></script>
 </body>
+
 </html>

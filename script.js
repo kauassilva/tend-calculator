@@ -1,6 +1,8 @@
 const expressionElement = document.getElementById('expression');
 const displayElement = document.getElementById('display');
 const buttonsElement = document.querySelector('.buttons');
+const insertXBtn = document.getElementById('insert-x');
+const varXInput = document.getElementById('var-x');
 
 // tokens da expressão
 let tokens = [];
@@ -43,7 +45,23 @@ function updateUI() {
 function pushCurrentToken() {
     if (!currentToken || currentToken === '')
         return;
-    // Sempre empurra o token atual (inclui '0' como primeiro valor válido)
+    // Decide whether to push the currentToken. We want to allow '0' as a
+    // first operand (e.g. 0 + 5) or when the previous token is an operator
+    // (user typed something like '+ 0'). But we must NOT append a default
+    // '0' when the expression already ends with an operand (e.g. '5 + X')
+    const last = tokens[tokens.length - 1];
+
+    if (currentToken === '0') {
+        // push '0' if expression is empty (first operand) or last token is an operator
+        if (tokens.length === 0 || (last && operators[last])) {
+            tokens.push(currentToken);
+            currentToken = '0';
+        }
+        // otherwise skip pushing the default '0'
+        return;
+    }
+
+    // normal non-zero number: always push
     tokens.push(currentToken);
     currentToken = '0';
 }
@@ -84,8 +102,13 @@ function inputOperator(operator) {
         tokens = [currentToken];
         evaluated = false;
     } else {
-        // Finaliza o token de numero
-        pushCurrentToken();
+        // Finaliza o token de numero somente quando necessário.
+        // Se o último token já for um operando (número ou identificador como 'X'),
+        // não devemos empurrar o currentToken (que normalmente é '0').
+        const last = tokens[tokens.length - 1];
+        if (!isOperand(last)) {
+            pushCurrentToken();
+        }
     }
 
     const last = tokens[tokens.length - 1];
@@ -119,6 +142,12 @@ function backspace() {
     updateUI();
 }
 
+const identifierRegex = /^[A-Za-z_]\w*$/;
+
+function isOperand(token) {
+    return token != null && ( !isNaN(token) || identifierRegex.test(token) );
+}
+
 function toRPN(inputTokens) {
     const out = [];
     const stack = [];
@@ -127,6 +156,11 @@ function toRPN(inputTokens) {
         if (token == null || token === '')
             continue;
         if (!isNaN(token)) {
+            out.push(token);
+            continue;
+        }
+        // identifiers (variáveis como X)
+        if (identifierRegex.test(token)) {
             out.push(token);
             continue;
         }
@@ -161,6 +195,19 @@ function evalRPN(rpn) {
     for (const token of rpn) {
         if (!isNaN(token)) {
             stack.push(parseFloat(token));
+            continue;
+        }
+        // identifier: look up variable value
+        if (identifierRegex.test(token)) {
+            // allow empty input as zero, but error on invalid numbers
+            const raw = (varXInput && typeof varXInput.value === 'string') ? varXInput.value.trim() : '';
+            if (raw === '') {
+                stack.push(0);
+            } else {
+                const v = parseFloat(raw);
+                if (Number.isNaN(v)) throw new Error('Erro: Variável X inválida');
+                stack.push(v);
+            }
             continue;
         }
         if (operators[token]) {
@@ -232,6 +279,21 @@ buttonsElement.addEventListener('click', (event) => {
         backspace();
     else if (action === 'equals')
         handleEquals();
+    else if (action === 'insert-x') {
+        // behave like previous insertXBtn
+        if (evaluated) {
+            tokens = [];
+            currentToken = 'X';
+            evaluated = false;
+            updateUI();
+            return;
+        }
+        if (currentToken !== '0') pushCurrentToken();
+        tokens.push('X');
+        currentToken = '0';
+        updateUI();
+        return;
+    }
     else if (['add', 'subtract', 'multiply', 'divide'].includes(action)) {
         const map = {
             add: '+',
@@ -244,9 +306,43 @@ buttonsElement.addEventListener('click', (event) => {
     }
 });
 
+// insert X handled via the main button grid click handler (data-action="insert-x")
+
 // Suporte ao teclado
 window.addEventListener('keydown', (event) => {
     const key = event.key;
+
+    // If user is typing in an input/textarea/contenteditable, don't intercept keys
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
+        return;
+    }
+
+    // Shortcut: insert digits into variable X using modifier+digit
+    // Supported combos: Ctrl+Alt+Digit (recommended) or Shift+Digit
+    // We check event.code so Shift+Digit is distinguishable from symbols (!@#...)
+    const code = event.code || '';
+    const isDigitKey = code.startsWith('Digit') || code.startsWith('Numpad');
+    if (isDigitKey && ((event.ctrlKey && event.altKey) || event.shiftKey)) {
+        let digit;
+        if (code.startsWith('Digit')) digit = code.slice(5);
+        else digit = code.slice(6); // Numpad
+
+        if (varXInput) {
+            // append digit to variable input; replace initial 0
+            const cur = (typeof varXInput.value === 'string') ? varXInput.value : '';
+            if (cur === '' || cur === '0') varXInput.value = digit;
+            else varXInput.value = cur + digit;
+
+            // small visual feedback: flash the input
+            varXInput.classList.add('flash');
+            clearTimeout(varXInput._flashTimeout);
+            varXInput._flashTimeout = setTimeout(() => varXInput.classList.remove('flash'), 250);
+        }
+
+        event.preventDefault();
+        return;
+    }
 
     if ((key >= '0' && key <= '9')) {
         inputDigit(key);
@@ -275,6 +371,15 @@ window.addEventListener('keydown', (event) => {
     }
     if (['+', '-', '*', '/'].includes(key)) {
         inputOperator(key);
+        event.preventDefault();
+        return;
+    }
+    if (key === 'x' || key === 'X') {
+        // behave like insert X
+        if (evaluated) { tokens = []; currentToken = 'X'; evaluated = false; updateUI(); event.preventDefault(); return; }
+        if (currentToken !== '0') pushCurrentToken();
+        tokens.push('X');
+        updateUI();
         event.preventDefault();
         return;
     }
