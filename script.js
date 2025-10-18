@@ -344,6 +344,24 @@ window.addEventListener('keydown', (event) => {
         return;
     }
 
+    // Shortcut: Ctrl/Cmd + Alt + Backspace -> remove last digit of variable X
+    const isCmdOrCtrl = event.ctrlKey || event.metaKey;
+    if (isCmdOrCtrl && event.altKey && key === 'Backspace') {
+        if (varXInput) {
+            const cur = (typeof varXInput.value === 'string') ? varXInput.value : '';
+            if (!cur || cur.length <= 1) varXInput.value = '0';
+            else varXInput.value = cur.slice(0, -1);
+
+            // flash feedback
+            varXInput.classList.add('flash');
+            clearTimeout(varXInput._flashTimeout);
+            varXInput._flashTimeout = setTimeout(() => varXInput.classList.remove('flash'), 250);
+        }
+
+        event.preventDefault();
+        return;
+    }
+
     if ((key >= '0' && key <= '9')) {
         inputDigit(key);
         event.preventDefault();
