@@ -1,47 +1,49 @@
-# tend-calculator
+# tend-calculator — Tend (v1.1.1)
 
-Uma calculadora simples escrita em HTML, CSS e JavaScript. Esta versão inclui suporte a expressão completa com precedência de operadores e uma variável X que pode ser usada em expressões.
+Calculadora simples em HTML/CSS/JS com suporte a expressões completas, precedência de operadores e uma variável configurável `X`.
 
 Versão
 -------
 - Aplicação: Tend
-- Versão visível no UI: v1.0.0 (considerar essa como a versão inicial)
+- Versão atual: v1.1.1
+
+Resumo das novidades (v1.1.1)
+----------------------------
+- Substituído o ícone inline do GitHub por um asset SVG em `src/assets/github-mark.svg` e ajustado o estilo para permitir theming via CSS (opção `currentColor`).
+- Pequenas melhorias de UX e organização de arquivos (separação do código da lógica em `src/scripts/math.js` e da UI em `src/scripts/ui.js`).
 
 Arquivos principais
 -------------------
 - `index.html` — interface (display, painel de variáveis e botões)
-- `styles.css` — estilos e pequenas animações de feedback
-- `script.js` — lógica (tokenização, shunting-yard, avaliação RPN, e manipulação de UI)
+- `src/styles/styles.css` — estilos e pequenas animações de feedback
+- `src/scripts/ui.js` — código da UI (event handlers, render)
+- `src/scripts/math.js` — lógica pura: tokenização, shunting-yard, RPN e avaliação
+- `src/assets/github-mark.svg` — ícone do GitHub usado no cabeçalho
 
 Como testar localmente
 ----------------------
 1. Abra o diretório `tend-calculator` no seu sistema de arquivos.
-2. Abra `index.html` no navegador (duplo clique ou arraste para o navegador).
-3. Use os botões ou o teclado para testar as funcionalidades listadas abaixo.
+2. Abra `index.html` no navegador (duplo clique).
 
-Funcionalidades notáveis
-------------------------
-- Avaliação de expressões com precedência de operações (+, -, *, /) usando shunting-yard → RPN.
-- Variável `X` suportada nas expressões (ex.: `2 * X + 1`). Defina o valor de `X` no campo "X".
-- Persistência da expressão após `=` (o resultado aparece no display, expressão permanece visível).
-- Inserção da variável `X` por botão ou tecla `X` no teclado (quando foco não está em inputs).
+Funcionalidades principais
+--------------------------
+- Montagem e edição de expressões infix completas com precedência de operadores (+, -, *, /).
+- Variável `X` configurável através do campo no painel; use `X` nas expressões.
+- Atalhos de teclado:
+	- Dígitos e operadores: `0`–`9`, `.`, `+`, `-`, `*`, `/`
+	- Avaliar: `Enter` ou `=`
+	- Apagar: `Backspace` (remove último caractere)
+	- Limpar: `Esc` (C)
+	- Inserir X: tecla `X` (quando foco não está em um campo)
+	- Append dígitos em X: `Ctrl+Alt+<digit>` (ex.: `Ctrl+Alt+4`)
+	- Remover último dígito de X: `Ctrl+Alt+Backspace`
 
-Atalhos de teclado úteis
-------------------------
-- Números e operadores: `0`–`9`, `.`, `+`, `-`, `*`, `/` — funciona normalmente.
-- `Enter` ou `=` — avaliar expressão.
-- `Backspace` — apaga último caractere do display.
-- `Esc` — limpar (C).
-- Inserir X: pressione `X` (quando foco não está dentro de um input).
-- Inserir dígitos na variável X via atalho: `Ctrl+Alt+<digit>` (ex.: `Ctrl+Alt+4`) — append do dígito ao valor de X.
-- Remover último dígito de X: `Ctrl+Alt+Backspace` — remove o último dígito (se ficar vazio, vira `0`).
-
-Observações de implementação
----------------------------
-- A lógica matemática é implementada de forma simples e local no `script.js` (tokenização, shunting-yard, avaliação em RPN), sem dependências.
-- Valores na variável `X` são interpretados como números via `parseFloat` no momento da avaliação; entradas vazias são tratadas como `0`.
-- O código inclui pequenas ajudas de UX (flash visual quando a variável X é atualizada via atalho, tokens clicáveis para editar).
+Notas de implementação
+---------------------
+- A lógica matemática está separada em `src/scripts/math.js` (pure functions) para facilitar testes.
+- `src/scripts/ui.js` importa `toRPN`, `evalRPN` e renderiza a UI; o fallback `script.js` pode ser mantido para navegadores sem ES module support.
+- O ícone do GitHub foi movido para `src/assets/github-mark.svg`. Para permitir que o ícone herde cor do CSS, o arquivo SVG foi ajustado para usar `fill="currentColor"`.
 
 Licença
 -------
-Este projeto está licenciado sob a licença do repositório (ver `LICENSE`).
+Este projeto está licenciado sob a licença no repositório (ver `LICENSE`).
