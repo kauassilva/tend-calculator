@@ -136,6 +136,17 @@ body {
     color: var(--text);
 }
 
+/* Hide default number input spinner controls (WebKit + Firefox) for a cleaner UX */
+.vars input[type="number"]::-webkit-outer-spin-button,
+.vars input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.vars input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield; /* Firefox */
+}
+
 #insert-x {
     padding: 8px 10px;
 }

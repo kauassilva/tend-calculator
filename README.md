@@ -1,16 +1,15 @@
-# tend-calculator — Tend (v1.1.1)
+# tend-calculator — Tend (v1.1.2)
 
 Calculadora simples em HTML/CSS/JS com suporte a expressões completas, precedência de operadores e uma variável configurável `X`.
 
 Versão
 -------
 - Aplicação: Tend
-- Versão atual: v1.1.1
+- Versão atual: v1.1.2
 
-Resumo das novidades (v1.1.1)
+Resumo das novidades (v1.1.2)
 ----------------------------
-- Substituído o ícone inline do GitHub por um asset SVG em `src/assets/github-mark.svg` e ajustado o estilo para permitir theming via CSS (opção `currentColor`).
-- Pequenas melhorias de UX e organização de arquivos (separação do código da lógica em `src/scripts/math.js` e da UI em `src/scripts/ui.js`).
+- Removidos os controles de incremento/decremento (spinners) do campo numérico da variável `X` para uma experiência mais limpa (CSS ajustado em `src/styles/styles.css`).
 
 Arquivos principais
 -------------------
