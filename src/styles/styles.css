@@ -49,7 +49,7 @@ body {
 
 /* flash feedback when X variable is updated via shortcut */
 .flash {
-    box-shadow: 0 0 0 3px rgba(6,182,212,0.12) inset;
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12) inset;
     transition: box-shadow 180ms ease-in-out;
 }
 
@@ -71,12 +71,18 @@ body {
     text-decoration: none;
     transition: background 140ms ease, color 140ms ease;
 }
-.repo-link:hover, .repo-link:focus {
-    background: rgba(255,255,255,0.03);
+
+.repo-link:hover,
+.repo-link:focus {
+    background: rgba(255, 255, 255, 0.03);
     color: var(--accent);
     outline: none;
 }
-.repo-link svg { display: block; }
+
+.repo-link svg {
+    display: block;
+}
+
 /* when using an external svg file via <img>, allow it to size and match color */
 .repo-link img {
     display: block;
