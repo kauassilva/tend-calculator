@@ -53,6 +53,38 @@ body {
     transition: box-shadow 180ms ease-in-out;
 }
 
+.brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.repo-link {
+    color: #9fb6c5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 140ms ease, color 140ms ease;
+}
+.repo-link:hover, .repo-link:focus {
+    background: rgba(255,255,255,0.03);
+    color: var(--accent);
+    outline: none;
+}
+.repo-link svg { display: block; }
+/* when using an external svg file via <img>, allow it to size and match color */
+.repo-link img {
+    display: block;
+    width: 18px;
+    height: 18px;
+    /* keep colors handled by the container's color via SVG `currentColor` or default fill */
+}
+
 .display {
     height: 64px;
     background: #081226;
